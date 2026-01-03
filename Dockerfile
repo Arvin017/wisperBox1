@@ -1,9 +1,21 @@
+# -------- BUILD STAGE --------
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+
+WORKDIR /app
+
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+COPY src ./src
+RUN mvn package -DskipTests
+
+# -------- RUN STAGE --------
 FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-COPY . .
+COPY --from=build /app/target/*.jar app.jar
 
-RUN ./mvnw package -DskipTests || mvn package -DskipTests
+EXPOSE 8080
 
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "app.jar"]
